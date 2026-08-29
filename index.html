@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tipster Edge">
+<title>Tipster Edge</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; max-width: 430px; margin: 0 auto; min-height: 100vh; }
+  .p4 { padding: 16px; }
+  .card { background: #fff; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 16px; }
+  .btn { width: 100%; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 16px; border: none; cursor: pointer; transition: transform 0.1s; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-green { background: #16a34a; color: #fff; }
+  .btn-red { background: #dc2626; color: #fff; }
+  .btn-outline { background: #fff; border: 2px solid #d1d5db; color: #4b5563; }
+  .btn-outline-orange { background: #fff; border: 2px solid #fb923c; color: #ea580c; }
+  .btn-outline-red { background: #fff; border: 2px solid #fca5a5; color: #dc2626; }
+  .btn-option { width: 100%; text-align: left; padding: 14px 16px; border-radius: 14px; border: 2px solid #e5e7eb; background: #fff; font-size: 15px; cursor: pointer; transition: all 0.1s; margin-bottom: 8px; }
+  .btn-option:active { border-color: #3b82f6; transform: scale(0.98); }
+  .btn-option-blue { border-color: #3b82f6; background: #eff6ff; }
+  .flex { display: flex; }
+  .gap2 { gap: 8px; }
+  .gap1 { gap: 4px; }
+  .mb2 { margin-bottom: 8px; }
+  .mb3 { margin-bottom: 12px; }
+  .mb4 { margin-bottom: 16px; }
+  .mt2 { margin-top: 8px; }
+  .mt4 { margin-top: 16px; }
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-lg { font-size: 18px; }
+  .text-xl { font-size: 22px; }
+  .text-3xl { font-size: 30px; }
+  .text-5xl { font-size: 48px; }
+  .bold { font-weight: 700; }
+  .semibold { font-weight: 600; }
+  .text-gray { color: #6b7280; }
+  .text-gray-light { color: #9ca3af; }
+  .text-green { color: #16a34a; }
+  .text-red { color: #dc2626; }
+  .text-blue { color: #2563eb; }
+  .text-orange { color: #ea580c; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-yellow { background: #fef9c3; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .result-box { background: #f0fdf4; border-radius: 14px; padding: 16px; }
+  .result-row { display: flex; justify-content: space-between; padding: 4px 0; }
+  .result-divider { border-top: 1px solid #bbf7d0; margin: 6px 0; padding-top: 6px; }
+  input[type="number"] { width: 100%; border: 2px solid #e5e7eb; border-radius: 14px; padding: 12px; font-size: 18px; outline: none; }
+  input[type="number"]:focus { border-color: #3b82f6; }
+  .stake-btn { padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 700; border: 2px solid #e5e7eb; background: #fff; color: #4b5563; cursor: pointer; }
+  .stake-btn.active { border-color: #3b82f6; background: #dbeafe; color: #1d4ed8; }
+  .stake-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .check-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fefce8; border-radius: 14px; }
+  .check-row input { width: 22px; height: 22px; }
+  .history-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+  .back-btn { color: #2563eb; font-size: 14px; font-weight: 600; background: none; border: none; cursor: pointer; margin-bottom: 12px; }
+  .pending-card { display: flex; justify-content: space-between; align-items: center; }
+  .pending-btns button { padding: 8px 16px; border-radius: 10px; font-weight: 700; color: #fff; border: none; cursor: pointer; margin-left: 4px; }
+  table { width: 100%; font-size: 13px; }
+  th { text-align: left; padding: 4px 0; color: #6b7280; }
+  td { padding: 4px 0; border-top: 1px solid #f3f4f6; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="app" class="p4"></div>
+<script>
+const STAKING = {"≤0.5":.05,"1":.01,"2-3":.0025,"4":.0025,"5-10":.06,"11+":.07};
+const STAKING_RED = Object.fromEntries(Object.entries(STAKING).map(([k,v])=>[k,v/2]));
+const REGLAS = [
+  {id:"R1",label:"Over 1.5",desc:"Más de 1.5 (goles, tiros, etc.)"},
+  {id:"R2",label:"Over 9.5",desc:"Más de 9.5 (corners, etc.)"},
+  {id:"R3",label:"Sí/No",desc:"Ambos anotan: Sí o No"},
+  {id:"R4",label:"Doble Oport.",desc:"1X, X2, 12"},
+  {id:"R5",label:"Local gana",desc:"Resultado: 1"},
+  {id:"R6",label:"Stake≥4 + ⭐",desc:"Stake alto Y destacado"},
+  {id:"R7",label:"Handicap ≤1.55",desc:"Hándicap con cuota ≤ 1.55"}
+];
+
+function stakeNivel(s){if(s<=.5)return"≤0.5";if(s<=1)return"1";if(s<=3)return"2-3";if(s<=4)return"4";if(s<=10)return"5-10";return"11+";}
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function fmt(n){return n.toLocaleString("es-CL");}
+
+let state = load("te-state", {banca:100000,reducido:false,apostadoHoy:0,diaActual:null,rachasHoy:0});
+let history = load("te-hist", []);
+let view = "main", step = 0, regla = null, stakeT = "", cuota = "", destacado = false, resultado = null;
+
+// Day reset
+const hoy = new Date().toISOString().slice(0,10);
+if(state.diaActual !== hoy){state.apostadoHoy=0;state.diaActual=hoy;state.rachasHoy=0;persist();}
+
+function persist(){save("te-state",state);save("te-hist",history.slice(-200));}
+function resetPick(){step=0;regla=null;stakeT="";cuota="";destacado=false;resultado=null;}
+
+function evaluar(){
+  const sk=parseFloat(stakeT)||0, q=parseFloat(cuota)||0;
+  if(!q||!sk){resultado={apostar:false,razon:"Faltan datos (stake o cuota)"};step=5;render();return;}
+  if(regla==="R6"&&(sk<4||!destacado)){resultado={apostar:false,razon:"R6 requiere stake ≥ 4 Y destacado"};step=5;render();return;}
+  if(regla==="R7"&&q>1.55){resultado={apostar:false,razon:"R7 requiere cuota ≤ 1.55"};step=5;render();return;}
+  if(state.banca<60000){resultado={apostar:false,razon:"🛑 STOP L3: banca bajo $60.000"};step=5;render();return;}
+  if(state.rachasHoy>=3){resultado={apostar:false,razon:"Pausa L1: 3 pérdidas consecutivas hoy"};step=5;render();return;}
+  const nivel=stakeNivel(sk), tabla=state.reducido?STAKING_RED:STAKING, pct=tabla[nivel], monto=Math.round(state.banca*pct);
+  if(state.apostadoHoy+monto>state.banca*.15){resultado={apostar:false,razon:"Cap diario (15%) alcanzado"};step=5;render();return;}
+  resultado={apostar:true,monto,nivel,pct:(pct*100).toFixed(2),regla,cuota:q,stakeT:sk};step=5;render();
+}
+
+function registrar(ganada){
+  const r=resultado, pl=ganada?Math.round(r.monto*(r.cuota-1)):-r.monto, nb=state.banca+pl;
+  history.push({id:Date.now(),fecha:new Date().toLocaleString("es-CL"),regla:r.regla,nivel:r.nivel,monto:r.monto,cuota:r.cuota,resultado:ganada?"✅":"❌",pl,banca:nb});
+  state.banca=nb;state.apostadoHoy+=r.monto;state.rachasHoy=ganada?0:state.rachasHoy+1;
+  if(nb<80000)state.reducido=true; else if(nb>=90000)state.reducido=false;
+  persist();resetPick();view="main";render();
+}
+
+function marcarPendiente(){
+  const r=resultado;
+  history.push({id:Date.now(),fecha:new Date().toLocaleString("es-CL"),regla:r.regla,nivel:r.nivel,monto:r.monto,cuota:r.cuota,resultado:"⏳",pl:0,banca:state.banca});
+  state.apostadoHoy+=r.monto;persist();resetPick();view="main";render();
+}
+
+function resolverPendiente(id,ganada){
+  const e=history.find(h=>h.id===id);if(!e)return;
+  const pl=ganada?Math.round(e.monto*(e.cuota-1)):-e.monto, nb=state.banca+pl;
+  e.resultado=ganada?"✅":"❌";e.pl=pl;e.banca=nb;
+  state.banca=nb;state.rachasHoy=ganada?0:state.rachasHoy+1;
+  if(nb<80000)state.reducido=true; else if(nb>=90000)state.reducido=false;
+  persist();render();
+}
+
+function render(){
+  const app=document.getElementById("app");
+  const pend=history.filter(e=>e.resultado==="⏳");
+  const totalPL=history.reduce((a,e)=>a+(e.pl||0),0);
+  const gan=history.filter(e=>e.resultado==="✅").length;
+  const per=history.filter(e=>e.resultado==="❌").length;
+  const hit=gan+per>0?((gan/(gan+per))*100).toFixed(1):"—";
+
+  if(view==="main"){
+    app.innerHTML=`
+      <div class="text-center mb4"><h1 class="text-xl bold">⚽ Tipster Edge</h1></div>
+      <div class="card">
+        <div class="flex" style="justify-content:space-between;align-items:center">
+          <span class="text-sm text-gray">Banca</span>
+          ${state.reducido?'<span class="badge badge-yellow">⚠️ Reducido</span>':''}
+          ${state.banca<60000?'<span class="badge badge-red">🛑 STOP</span>':''}
+        </div>
+        <p class="text-3xl bold">$${fmt(state.banca)}</p>
+        <div class="flex gap2 mt2 text-sm text-gray">
+          <span>P&L: <strong class="${totalPL>=0?'text-green':'text-red'}">$${fmt(totalPL)}</strong></span>
+          <span>Hit: <strong>${hit}%</strong></span>
+        </div>
+        <div class="text-xs text-gray-light mt2">Hoy: $${fmt(state.apostadoHoy)} apostado | ${state.rachasHoy} racha</div>
+      </div>
+      <button class="btn btn-primary mb3" onclick="resetPick();step=1;view='evaluar';render()">🎯 Evaluar pick</button>
+      ${pend.length?`<button class="btn btn-outline-orange mb3" onclick="view='pendientes';render()">⏳ Pendientes (${pend.length})</button>`:''}
+      <div class="flex gap2">
+        <button class="btn btn-outline" onclick="view='historial';render()">📋 Historial</button>
+        <button class="btn btn-outline" onclick="view='config';render()">⚙️ Config</button>
+      </div>`;
+    return;
+  }
+
+  if(view==="evaluar"){
+    let html='<button class="back-btn" onclick="resetPick();view=\'main\';render()">← Volver</button>';
+    if(step===1){
+      html+=`<div class="card"><h2 class="text-lg bold mb3">¿Tipo de apuesta?</h2>
+        <button class="btn-option btn-option-blue" onclick="step=2;render()">✅ Simple pre-partido</button>
+        <button class="btn-option" onclick="resultado={apostar:false,razon:'Solo simples pre-partido'};step=5;render()">Combinada / BB / En vivo</button></div>`;
+    } else if(step===2){
+      html+=`<div class="card"><h2 class="text-lg bold mb3">¿Qué regla cumple?</h2>`;
+      REGLAS.forEach(r=>{html+=`<button class="btn-option" onclick="regla='${r.id}';step=4;render()"><strong class="text-blue">${r.id}</strong> <strong>${r.label}</strong><br><span class="text-xs text-gray">${r.desc}</span></button>`;});
+      html+=`<button class="btn-option" style="border-color:#fca5a5;color:#dc2626" onclick="resultado={apostar:false,razon:'No cumple ninguna regla v3'};step=5;render()">❌ Ninguna</button></div>`;
+    } else if(step===4){
+      html+=`<div class="card"><h2 class="text-lg bold mb3">Datos del pick</h2>
+        <label class="text-sm text-gray">Cuota</label>
+        <input type="number" id="cuotaInput" inputmode="decimal" step="0.01" placeholder="1.55" value="${cuota}" oninput="cuota=this.value" class="mb3" style="margin-top:4px">
+        <label class="text-sm text-gray">Stake del tipster</label>
+        <div class="stake-grid mt2 mb3">`;
+      [0.5,1,2,3,4,5,10,20,50].forEach(s=>{html+=`<button class="stake-btn ${stakeT==String(s)?'active':''}" onclick="stakeT='${s}';render()">${s}</button>`;});
+      html+=`<input type="number" inputmode="decimal" placeholder="otro" value="${stakeT}" oninput="stakeT=this.value" style="width:60px;padding:8px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px"></div>`;
+      if(regla==="R6"){html+=`<div class="check-row mb3"><input type="checkbox" id="destCheck" ${destacado?'checked':''} onchange="destacado=this.checked"><label class="semibold" for="destCheck">⭐ Marcado como destacado</label></div>`;}
+      html+=`<button class="btn btn-primary" onclick="evaluar()">Evaluar →</button></div>`;
+    } else if(step===5&&resultado){
+      if(resultado.apostar){
+        html+=`<div class="card"><div class="text-center mb3"><div class="text-5xl">🎯</div><h2 class="text-xl bold text-green" style="margin-top:8px">¡APOSTAR!</h2></div>
+          <div class="result-box">
+            <div class="result-row"><span class="text-gray">Regla</span><strong>${resultado.regla}</strong></div>
+            <div class="result-row"><span class="text-gray">Nivel</span><strong>${resultado.nivel}</strong></div>
+            <div class="result-row"><span class="text-gray">% banca</span><strong>${resultado.pct}%</strong></div>
+            <div class="result-row result-divider text-lg"><span class="semibold">Monto</span><strong class="text-green">$${fmt(resultado.monto)}</strong></div>
+            <div class="result-row"><span class="text-gray">Cuota</span><strong>${resultado.cuota}</strong></div>
+          </div>
+          <p class="text-sm text-gray text-center mt4 mb2">¿Resultado?</p>
+          <div class="flex gap2">
+            <button class="btn btn-green" style="flex:1" onclick="registrar(true)">✅ Ganó</button>
+            <button class="btn btn-red" style="flex:1" onclick="registrar(false)">❌ Perdió</button>
+            <button class="btn btn-outline-orange" style="flex:1" onclick="marcarPendiente()">⏳</button>
+          </div></div>`;
+      } else {
+        html+=`<div class="card text-center"><div class="text-5xl">⏭️</div><h2 class="text-xl bold text-gray" style="margin-top:8px">NO APOSTAR</h2>
+          <p class="text-gray mt2">${resultado.razon}</p>
+          <button class="btn btn-outline mt4" onclick="resetPick();view='main';render()">Volver</button></div>`;
+      }
+    }
+    app.innerHTML=html;
+    if(step===4){const ci=document.getElementById("cuotaInput");if(ci&&!cuota)ci.focus();}
+    return;
+  }
+
+  if(view==="pendientes"){
+    let html='<button class="back-btn" onclick="view=\'main\';render()">← Volver</button><h2 class="text-lg bold mb3">⏳ Pendientes</h2>';
+    if(!pend.length)html+='<p class="text-gray text-center" style="margin-top:32px">No hay pendientes</p>';
+    pend.forEach(e=>{html+=`<div class="card pending-card"><div><strong class="text-blue">${e.regla}</strong> <span class="text-sm text-gray">$${fmt(e.monto)} @ ${e.cuota}</span><br><span class="text-xs text-gray-light">${e.fecha}</span></div><div class="pending-btns"><button style="background:#16a34a" onclick="resolverPendiente(${e.id},true)">✅</button><button style="background:#dc2626" onclick="resolverPendiente(${e.id},false)">❌</button></div></div>`;});
+    app.innerHTML=html;return;
+  }
+
+  if(view==="historial"){
+    const recent=[...history].reverse().slice(0,50);
+    let html=`<button class="back-btn" onclick="view='main';render()">← Volver</button><h2 class="text-lg bold mb3">📋 Últimos picks (${history.length} total)</h2>`;
+    if(!recent.length)html+='<p class="text-gray text-center" style="margin-top:32px">Sin historial</p>';
+    recent.forEach(e=>{
+      const plc=(e.pl||0)>=0?'text-green':'text-red';
+      const pls=(e.pl||0)>=0?'+':'';
+      html+=`<div class="history-row"><div class="flex gap2" style="align-items:center"><span class="text-lg">${e.resultado}</span><div><span class="semibold text-sm">${e.regla}</span> <span class="text-xs text-gray-light">${e.fecha}</span></div></div><div class="text-right"><span class="bold text-sm ${plc}">${pls}$${fmt(e.pl||0)}</span><br><span class="text-xs text-gray-light">$${fmt(e.monto||0)} @ ${e.cuota}</span></div></div>`;
+    });
+    app.innerHTML=html;return;
+  }
+
+  if(view==="config"){
+    const tabla=state.reducido?STAKING_RED:STAKING;
+    let html=`<button class="back-btn" onclick="view='main';render()">← Volver</button><h2 class="text-lg bold mb3">⚙️ Configuración</h2>
+      <div class="card"><label class="text-sm text-gray">Ajustar banca</label>
+      <input type="number" id="bancaInput" value="${state.banca}" style="margin:4px 0 12px">
+      <button class="btn btn-primary" onclick="state.banca=parseInt(document.getElementById('bancaInput').value)||state.banca;persist();view='main';render()">Guardar</button></div>
+      <div class="card"><h3 class="bold mb2">Stakes (${state.reducido?'REDUCIDO':'normal'})</h3><table><tr><th>Nivel</th><th class="text-right">%</th><th class="text-right">Monto</th></tr>`;
+    Object.entries(tabla).forEach(([k,v])=>{html+=`<tr><td class="semibold">${k}</td><td class="text-right">${(v*100).toFixed(2)}%</td><td class="text-right semibold">$${fmt(Math.round(state.banca*v))}</td></tr>`;});
+    html+=`</table></div><div class="card"><h3 class="bold mb2">Reglas v3</h3>`;
+    REGLAS.forEach(r=>{html+=`<div style="padding:4px 0;border-bottom:1px solid #f3f4f6"><strong class="text-blue text-sm">${r.id}</strong> <span class="text-sm semibold">${r.label}</span> <span class="text-xs text-gray-light">— ${r.desc}</span></div>`;});
+    html+=`</div><button class="btn btn-outline-red mt2" onclick="if(confirm('¿Borrar TODO y resetear a $100.000?')){history=[];state={banca:100000,reducido:false,apostadoHoy:0,diaActual:null,rachasHoy:0};persist();view='main';render();}">🗑️ Reset completo</button>`;
+    app.innerHTML=html;return;
+  }
+}
+
+render();
+</script>
+</body>
+</html>
